@@ -1,0 +1,143 @@
+# sfDomainRoute plugin
+
+The `sfDomainRoutePlugin` extends Symfony's routing to allow effective use of subdomains and domains.
+
+## Features
+
+  * Pass and retrieve parameters in the subdomain.
+  * Limit routes to certain domains or subdomains.
+  * Generate urls across subdomains.
+
+## Installation
+
+  * Install the plugin
+
+        $ symfony plugin:install sfDomainRoutePlugin
+
+  * Clear your cache
+
+        $ symfony cc
+
+  * Configure your routes.
+
+
+## Documentation
+
+To access extra features in a route, you must define its class as `sfDomainRoute` in routing.yml
+
+    [yml]
+    route_with_subdomain:
+      url:          /
+      class:        sfDomainRoute
+      param:        { module: subdomain, action: index }
+
+To get the subdomain value in your action, simply access it like any other request parameter:
+
+    [php]
+    $this->subdomain = $request->getParameter('subdomain');
+
+To limit a route to a specific domain or subdomain, add sf_host to its requirements:
+
+    route_with_certain_subdomains:
+      url:          /
+      class:        sfDomainRoute
+      param:        { module: homepage, action: index }
+      requirements:
+        sf_host:    www.greenanysite.com
+
+If you'd like this route to have more than one domain or subdomain in its requirements, define sf_host as an array:
+
+    [yml]
+    route_with_certain_subdomains:
+      url:          /
+      class:        sfDomainRoute
+      param:        { module: homepage, action: index }
+      requirements:
+        sf_host:    [www.greenanysite.com, greenanysite.com]
+
+Generating urls will still work as expected.
+
+**Important** - While it may be obvious why you need to set routes that use extra domain features, as `sfDomainRoute`, there is one more limitation that is a bit less obvious. Any routes that you link to from a page with a subdomain must also be of a class `sfDomainRoute`. No other change is necessary for those routes beyond changing their class.
+
+For example, if you are linking to your download page (www.domain.com/download) from a user page (user.domain.com) you will need to define the route for @download as `sfDomainRoute`.
+
+The reason for this requirements is that Symfony's own default class for routes will not recognize that the current address is a subdomain and generate either a relative url or an absolute url using the current domain/subdomain, either way the link will still lead to the current subdomain. By defining the linked route as being `sfDomainRoute`, we can make sure to generate a *www.domain.com* link for it.
+
+## Full Working Example
+
+### Define routes for root directory with and without subdomains
+
+    [yml]
+    # apps/frontend/config/routing.yml
+
+    #Sample route limited to a number of subdomains
+    homepage:
+      url:          /
+      class:        sfDomainRoute
+      param:        { module: homepage, action: index }
+      requirements:
+        sf_host:    [www.greenanysite.com, greenanysite.com]
+
+    #Sample route limited to one subdomain
+    blog:
+      url:          /
+      class:        sfDomainRoute
+      param:        { module: blog, action: index }
+      requirements:
+        sf_host:    blog.greenanysite.com
+
+    #Sample route that will capture the subdomain name as a parameter
+    user_page:
+      url:          /
+      class:        sfDomainRoute
+      param:        { module: user, action: index }
+
+    #Sample route that will not receive a subdomain and will default to www.greenanysite.com
+    install:
+      url:          /install
+      class:        sfDomainRoute
+      param:        { module: install, action: index }
+
+Notice how @homepage is defined before user page. routing.yml is parsed sequentially, so if @user_page was before @homepage it would've captured www.greenanysite.com as a user page with a user name of www.
+
+Notice also that @install is also defined as sfDomainRoute even though it seemingly doesn't use any special domain features. This is done since we'll be linking to this page from a subdomain Otherwise it will default to sfRoute which doesn't recognize the subdomain and we'll end up with user.greenanysite.com/install instead of www.greenanysite.com/install (see Documentation above for a more detailed explanation.)
+
+### Access Subdomain as a Parameter
+    [php]
+    // apps/frontend/modules/user/actions/actions.class.php
+    $this->username = $request->getParameter('subdomain');
+
+### Generate URLs
+
+Urls are still generated as expected:
+
+    [php]
+    // apps/frontend/modules/user/templates/indexSuccess.php
+
+    // will generate a link to zzzrbyte.greenanysite.com (works across subdomains. e.g if user is
+    // on talater.greenanysite.com and linking to zzzrbyte.greenanysite.com)
+    echo link_to('zzzrbyte', '@user_page?subdomain=zzzrbyte');
+
+    // It even works with POST without specifying method requirements (unlike sfRequestRoute)
+    echo '<form action="'.url_for('@user_page?subdomain=zzzrbyte').'" method="POST">';
+
+    // It will also successfully generate a link to www.greenanysite.com/install from the current
+    // subdomain (talater.greenanysite.com) because @install has been defined as sfDomainRoute.
+    echo link_to('install', '@install');
+
+
+## Bugs and Things To Do
+
+  * BUG: The code to generate links only works with domains of the form domain.tld and will fail on addresses such as domain.co.il
+  * BUG: Links generated from domain.tld will lead to www.domain.tld when no subdomain specified.
+  * TODO: Let a user choose the name of the parameter which will contain the subdomain value (instead of the default parameter name of subdomain)
+  * TODO: Create classes that extend `sfPropelRoute` and `sfDoctrineRoute` (i.e. `sfPropelDomainRoute` and `sfDoctrineDomainRoute`)
+  * TODO: Add sf_exclude_subdomain to requirements. Will allow defining a route that won't match on certain subdomains. For example:
+
+        [yml]
+        user_page:
+          url:                    /
+          class:                  sfDomainRoute
+          param:                  { module: user, action: index }
+          requirements:
+            sf_exclude_subdomain: [www, blog]
