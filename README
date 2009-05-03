@@ -129,7 +129,6 @@ Urls are still generated as expected:
 ## Bugs and Things To Do
 
   * BUG: The code to generate links only works with domains of the form domain.tld and will fail on addresses such as domain.co.il
-  * BUG: Links generated from domain.tld will lead to www.domain.tld when no subdomain specified.
   * TODO: Let a user choose the name of the parameter which will contain the subdomain value (instead of the default parameter name of subdomain)
   * TODO: Create classes that extend `sfPropelRoute` and `sfDoctrineRoute` (i.e. `sfPropelDomainRoute` and `sfDoctrineDomainRoute`)
   * TODO: Add sf_exclude_subdomain to requirements. Will allow defining a route that won't match on certain subdomains. For example:

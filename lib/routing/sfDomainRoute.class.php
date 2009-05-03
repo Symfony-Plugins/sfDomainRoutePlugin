@@ -79,23 +79,27 @@ class sfDomainRoute extends sfRequestRoute
    */
   public function generate($params, $context = array(), $absolute = false)
   {
-    $subdomain = isset($params['subdomain']) ? $params['subdomain'] : 'www';
+    $hostRequirements = $this->getHostRequirements();
+    $subdomain = isset($params['subdomain']) ? $params['subdomain'] : null;
     unset($params['subdomain']);
+    $url = parent::generate($params, $context, false);
     if ($subdomain && $subdomain != $this->getSubdomain($context))
     {
-      $url = parent::generate($params, $context, false);
-      return $this->getHostForSubdomain($context, $subdomain).$url;
+      return $this->getProtocol($context).$this->getHostForSubdomain($context, $subdomain).$url;
+    } elseif (!empty($hostRequirements) && !in_array($context['host'], $hostRequirements)) {
+      return $this->getProtocol($context).$hostRequirements[0].$url;
+    } else {
+      return parent::generate($params, $context, $absolute);
     }
-    return parent::generate($params, $context, $absolute);
   }
 
   /**
-   * Generates a protocol and host for the given subdomain.
+   * Generates a host for the given subdomain.
    *
    * @param   array     $context    The context
    * @param   string    $subdomain  subdomain name
    *
-   * @return  string    The generated protocol and host
+   * @return  string    The generated host
    *
    * @todo    Currently only supports sub.domain.tld style domains. Modify to support sub.domain.xx.xx
    */
@@ -111,8 +115,7 @@ class sfDomainRoute extends sfRequestRoute
     if ($partCount<3) {
       $host = $subdomain.'.'.$host;
     }
-    $protocol = 'http'.(isset($context['is_secure']) && $context['is_secure'] ? 's' : '');
-    return $protocol.'://'.$host;
+    return $host;
   }
 
   /**
@@ -148,5 +151,11 @@ class sfDomainRoute extends sfRequestRoute
     }
     return $hostRequirements;
   }
+
+  protected function getProtocol($context = array())
+  {
+    return 'http'.(isset($context['is_secure']) && $context['is_secure'] ? 's' : '').'://';
+  }
+
 }
 ?>
