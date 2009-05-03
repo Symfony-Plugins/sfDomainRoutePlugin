@@ -41,17 +41,10 @@ class sfDomainRoute extends sfRequestRoute
     }
 
     //check host requirements
-    if (isset($this->requirements['sf_host']))
+    $hostRequirements = $this->getHostRequirements();
+    if (!empty($hostRequirements) && !in_array($context['host'], $hostRequirements))
     {
-      $hostRequirements = $this->requirements['sf_host'];
-      if (!is_array($hostRequirements))
-      {
-        $hostRequirements = array($hostRequirements);
-      }
-      if (!in_array($context['host'], $hostRequirements))
-      {
-        return false;
-      }
+      return false;
     }
 
     //get subdomain
@@ -139,6 +132,21 @@ class sfDomainRoute extends sfRequestRoute
     } else {
       return $parts[0];
     }
+  }
+
+  protected function getHostRequirements()
+  {
+    if (isset($this->requirements['sf_host']))
+    {
+      $hostRequirements = $this->requirements['sf_host'];
+      if (!is_array($hostRequirements))
+      {
+        $hostRequirements = array($hostRequirements);
+      }
+    } else {
+      $hostRequirements = array();
+    }
+    return $hostRequirements;
   }
 }
 ?>
