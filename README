@@ -128,7 +128,10 @@ Urls are still generated as expected:
 
 ## Bugs and Things To Do
 
+If you find any bugs, have any ideas or just want to talk to me about the plugin, you can use the issue tracker at http://code.google.com/p/sfdomaineouteplugin/issues/list or email me (tal _at_ talater _dot_ com)
+
   * BUG: The code to generate links only works with domains of the form domain.tld and will fail on addresses such as domain.co.il
+  * TODO: Full support for routing based on domain names (not just subdomains)
   * TODO: Let a user choose the name of the parameter which will contain the subdomain value (instead of the default parameter name of subdomain)
   * TODO: Create classes that extend `sfPropelRoute` and `sfDoctrineRoute` (i.e. `sfPropelDomainRoute` and `sfDoctrineDomainRoute`)
   * TODO: Add sf_exclude_subdomain to requirements. Will allow defining a route that won't match on certain subdomains. For example:
