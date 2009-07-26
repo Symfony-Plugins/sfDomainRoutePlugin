@@ -49,8 +49,9 @@ class sfDomainRoute extends sfRequestRoute
 
     //get subdomain
     $subDomain = $this->getSubdomain($context);
-    $retval['subdomain'] = $subDomain;
-
+    if (!empty($subDomain)) {
+      $retval['subdomain'] = $subDomain;
+    }
     return $retval;
   }
 
