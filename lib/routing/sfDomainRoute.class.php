@@ -2,7 +2,7 @@
 
 /*
  * This file is part of the sfDomainRoute package.
- * (c) 2009 Tal Ater <tal@talater.com>
+ * (c) 2012 Tal Ater <tal@talater.com>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
